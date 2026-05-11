@@ -1,0 +1,16 @@
+{
+    "env": {
+        "browser": true
+    },
+    "globals": {},
+    "settings": {},
+    "rules": {
+        "eqeqeq": "warn",
+        "import/no-cycle": "error",
+        "eslint/no-alert": "error",
+        "eslint/no-console": "warn",
+        "eslint/no-empty": "warn",
+        "eslint/no-empty-function": "warn",
+        "eslint/no-eval ": "warn"
+    }
+}

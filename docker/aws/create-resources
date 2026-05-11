@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+
+if [ $# -gt 0 ]; then
+    exec aws "$@"
+else
+    echo "Creating cache"
+    /usr/local/bin/create-cache
+    echo "Creating buckets"
+    /usr/local/bin/create-buckets
+fi

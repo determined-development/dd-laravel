@@ -1,0 +1,20 @@
+includes:
+    - ./vendor/larastan/larastan/extension.neon
+    - ./vendor/archtechx/enums/extension.neon
+
+parameters:
+    paths:
+        - app
+        - database/factories
+        - database/migrations
+        - resources/views
+
+    level: 6
+
+    checkModelAppends: false
+
+    ignoreErrors:
+        -
+            identifier: missingType.iterableValue
+        -
+            identifier: missingType.generics

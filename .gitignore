@@ -12,6 +12,8 @@
 /.phpunit.cache
 /.vscode
 /.zed
+/.php-cs-fixer.cache
+/_ide_macros.php
 /auth.json
 /node_modules
 /public/build
@@ -25,3 +27,13 @@ _ide_helper.php
 Homestead.json
 Homestead.yaml
 Thumbs.db
+
+/ray.php
+.vapor/
+.env.staging
+
+# Laravel Boost
+/boost.json
+/AGENTS.md
+/.vscode/
+/.github/skills/

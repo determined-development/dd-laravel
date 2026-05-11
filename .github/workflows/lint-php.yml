@@ -1,0 +1,53 @@
+name: Lint PHP
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - 'main'
+    paths:
+      - 'app/**/*.php'
+      - 'bootstrap/**/*.php'
+      - 'config/**/*.php'
+      - 'database/**/*.php'
+      - 'resources/views/**/*.php'
+      - 'routes/**/*.php'
+      - 'tests/**/*.php'
+      - 'compser.lock'
+      - 'phpcs.xml.dist'
+      - 'phpstan.neon'
+      - 'pint.json'
+      - '.github/workflows/lint-php.yml'
+  pull_request:
+    types: [ opened, reopened, synchronize ]
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: true
+      matrix:
+        linter: ['pint', 'phpcs', 'phpstan']
+        include:
+          - linter: 'pint'
+            params: '--test --format=checkstyle | cs2pr'
+          - linter: 'phpcs'
+            params: './'
+          - linter: 'phpstan'
+            params: 'analyse --error-format=github'
+
+    name: Run ${{ matrix.linter }}
+
+    steps:
+      - uses: actions/checkout@v6
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.5'
+          tools: composer, cs2pr
+          coverage: none
+        env:
+          COMPOSER_AUTH_JSON: ${{ secrets.COMPOSER_AUTH_JSON }}
+      - name: Install dependencies
+        run: composer install --no-interaction --prefer-dist --optimize-autoloader
+      - name: Run ${{ matrix.linter }}
+        run: php vendor/bin/${{ matrix.linter }} ${{ matrix.params }}

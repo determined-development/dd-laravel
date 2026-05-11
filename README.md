@@ -1,58 +1,157 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Determined Development Laravel Starter Kit
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+This is a [Laravel](https://laravel.com) starter kit used by [Determined Development](https://determineddevelopment.com). It is not an official starter kit, but is instead a collection of preferences on top of the standard [Laravel Project Skeleton](https://github.com/laravel/laravel).
 
-## About Laravel
+The modifications to the Laravel skeleton are mostly setup steps and composer requirements that configure the base application to fit our common usage patterns.
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## Local Environment Setup
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+The fastest way to work on this software locally is using [Laravel Sail](https://laravel.com/docs/11.x/sail).
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+**NB:** This will require [Docker](https://www.docker.com/).
 
-## Learning Laravel
+### Configure the environment
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+Copy the file `.env.sail` to `.env` and update any necessary details. The majority of default settings in that file
+should be sufficient without modification, however you should review it to ensure that everything is correct.
 
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+### Installing sail and dependencies
 
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
-
-## Agentic Development
-
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
+Once your environment is configured, you can install the application and dependencies with the following commands:
 
 ```bash
-composer require laravel/boost --dev
-
-php artisan boost:install
+docker run --rm -u "$(id -u):$(id -g)" -v "$(pwd):/var/www/html" -w /var/www/html laravelsail/php82-composer:latest composer install --ignore-platform-reqs
+alias sail="vendor/bin/sail"
+sail up -d
+sail composer install
+sail artisan key:secret
+sail npm ci
 ```
 
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
+### Installing and seeding the database
 
-## Contributing
+You can install the database and fill it with development data using the following command:
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+```bash
+sail artisan migrate:fresh --seed --seeder=DevelopmentSeeder
+```
 
-## Code of Conduct
+**NB** If you have an existing database configured, `migrate:fresh` will drop all tables, resulting in unrecoverable
+data loss. It is likely a good idea to do this regularly to ensure that you aren't working with stale data.
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+### Build front-end assets
 
-## Security Vulnerabilities
+You have to build the frontend assets (CSS and JavaScript) before you can use the application. This can be done with the
+following commands:
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+```bash
+# To build all assets once
+sail npm run build
 
-## License
+# To watch for changes to assets so that the assets are automatically rebuilt as you make changes
+sail npm run dev
+```
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+### Access the site
+Once this has been done, you should be able to access the site at [http://localhost](http://localhost).
+
+#### Mail
+All emails will be sent to "Mailpit", which you can access at [http://localhost:8025](http://localhost:8025). This will
+capture all outbound email so that you can test updates as needed.
+
+## Code Quality
+
+The following code quality tools are installed and configured. These tools _will_ be run in CI, and merges will not be
+accepted without passing all tests. Automatic code style fixes _will not_ be run in CI. Ensure that your code is
+compliant before pushing.
+
+### Code Style
+
+The project adheres the [PSR-12](https://www.php-fig.org/psr/psr-12/) coding standard.
+
+The following scripts are available to check and fix code style issues:
+```bash
+# Check for any code style issues
+composer lint
+# Attempt to fix any code style issues
+composer lint:fix
+```
+Individual tools are also available:
+
+#### [Laravel Pint](https://laravel.com/docs/11.x/pint)
+
+Configuration: `pint.json`
+```bash
+# Check for any code style issues
+composer lint:pint
+# Attempt to fix any code style issues
+composer pint:fix
+```
+
+#### [PHP Code Sniffer](https://github.com/squizlabs/PHP_CodeSniffer)
+Configuration: `phpcs.xml.dist`
+```bash
+# Check for any code style issues
+composer lint:phpcs
+# Attempt to fix any code style issues (using phpcbf)
+composer phpcs:fix
+```
+
+### Static Analysis
+
+#### [LaraStan](https://github.com/larastan/larastan)
+Configuration: `phpstan.neon`
+```bash
+composer test:types
+```
+
+### Testing
+
+Testing is done with the Laravel [testing framework](https://laravel.com/docs/11.x/testing), using
+[Pest](https://pestphp.com/) to provide the testing setup.
+
+**WARNING:** Tests require a testing database. If you do not configure a test database, this _will_ destroy your
+development database. This is not necessary if you are using Sail - the test database is already configured.
+
+Configuration: `phpunit.xml`
+```bash
+# Architecture tests
+composer test:arch
+# Feature tests
+composer test:feat
+# Unit tests
+composer test:unit
+# All tests
+composer test
+```
+
+### Run all Checks
+```bash
+composer test:all
+```
+
+### Asset tests
+Assets are tested using npm libraries.
+
+#### [Biome](https://eslint.org/)
+Configuration: `biome.json`
+```bash
+# Check for any code style issues
+npx biome check
+# Attempt to fix any code style issues
+npx biome check --write
+# Include "unsafe" fixes
+npx biome check --write --unsafe
+```
+
+#### [ESLint](https://eslint.org/)
+Configuration: `eslint.config.js`
+```bash
+npx eslint
+```
+
+#### [OXLint](https://oxc.rs/docs/guide/usage/linter.html)
+Configuration: `.oxlintrc.json`
+```bash
+npx oxlint
+```

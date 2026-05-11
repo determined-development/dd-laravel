@@ -1,0 +1,47 @@
+#!/usr/bin/env bash
+
+IFS=', ' read -r -a BUCKETS <<< "${AWS_BUCKETS:-local}"
+CREATE_BUCKETS=("${BUCKETS[@]}")
+
+if [[ "${#CREATE_BUCKETS[@]}" -eq 0 ]]; then
+    echo "No buckets required"
+    exit 0
+fi
+
+while read b; do
+    FOUND_BUCKET=$(echo "$b" | awk '{print $NF}')
+
+    if [ "$FOUND_BUCKET" = "$BUCKET" ]; then
+        echo "Bucket $BUCKET already exists"
+        CREATE_BUCKET=0
+        break
+    fi
+done <<< $(aws --endpoint-url=http://minio:9000 s3 ls)
+
+while read b; do
+    FOUND_BUCKET=$(echo "$b" | awk '{print $NF}')
+
+    for i in "${!CREATE_BUCKETS[@]}" ; do
+        if [ "${CREATE_BUCKETS[i]}" = "$FOUND_BUCKET" ]; then
+            echo "Bucket '$FOUND_BUCKET' already exists"
+            unset CREATE_BUCKETS[i]
+            break
+        fi
+    done
+done <<< $(aws --endpoint-url=http://minio:9000 s3 ls)
+
+for BUCKET in "${CREATE_BUCKETS[@]}"
+do
+    if [ -n "${BUCKET}" ]; then
+        echo "Creating bucket '$BUCKET'"
+        aws --endpoint-url=http://minio:9000 s3 mb "s3://$BUCKET"
+    fi
+done
+
+for BUCKET in "${BUCKETS[@]}"
+do
+    if [ -n "${BUCKET}" ]; then
+        cat /aws/public-read.json | sed s/\$\{BUCKET\}/$BUCKET/ > policy.json
+        aws --endpoint-url=http://minio:9000 s3api put-bucket-policy --bucket $BUCKET --policy file://policy.json
+    fi
+done

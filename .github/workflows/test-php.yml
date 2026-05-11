@@ -1,0 +1,74 @@
+name: Test PHP
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - 'main'
+    paths:
+      - 'app/**/*.php'
+      - 'bootstrap/**/*.php'
+      - 'config/**/*.php'
+      - 'database/**/*.php'
+      - 'resources/views/**/*.php'
+      - 'routes/**/*.php'
+      - 'tests/**/*.php'
+      - 'compser.lock'
+      - 'phpunit.xml'
+      - '.github/workflows/test-php.yml'
+  pull_request:
+    types: [ opened, reopened, synchronize ]
+
+permissions:
+  contents: read
+
+jobs:
+  pest:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.5'
+          tools: composer
+          extensions: dom, curl, libxml, mbstring, zip, pcntl, pdo, mysqlnd, pdo_mysql
+          coverage: xdebug
+
+      - name: Set up NPM
+        uses: actions/setup-node@v6
+
+      - name: Install Composer dependencies
+        run: |
+          composer install --no-interaction --prefer-dist --optimize-autoloader
+          cp .env.example .env
+          php artisan key:generate
+
+      - name: Run tests
+        run: php artisan test --ci --parallel
+        env:
+          DB_DATABASE: 'testing'
+          DB_USERNAME: 'laravel'
+          DB_PASSWORD: 'test'
+          DB_HOST: '127.0.0.1'
+          DB_PORT: ${{ job.services.mysql.ports[3306] }}
+
+      - name: Generate app key
+        run: php artisan key:generate
+
+      - name: Execute tests
+        run: php artisan test
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_DATABASE: 'testing'
+          MYSQL_USER: 'laravel'
+          MYSQL_PASSWORD: 'test'
+          MYSQL_ROOT_PASSWORD: 'test'
+        ports:
+          - 3306

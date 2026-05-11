@@ -5,14 +5,22 @@ charset = utf-8
 end_of_line = lf
 indent_size = 4
 indent_style = space
-insert_final_newline = true
 trim_trailing_whitespace = true
 
 [*.md]
 trim_trailing_whitespace = false
+indent_size = 0
+max_line_length = off
 
-[*.{yml,yaml}]
+[*.{yml,yaml,css,blade.php}]
 indent_size = 2
+
+[*.config.js]
+indent_size = 4
 
 [{compose,docker-compose}.{yml,yaml}]
 indent_size = 4
+
+[resources/views/**/{emails,mail}/**.blade.php]
+indent_size = 0
+max_line_length = off

@@ -1,0 +1,38 @@
+#!/usr/bin/env bash
+
+CACHE_TABLE="${DYNAMODB_CACHE_TABLE}"
+CACHE_KEY="${DYNAMODB_CACHE_KEY:-key}"
+
+if [[ -z "${CACHE_TABLE}" ]]; then
+    echo "No cache tables required"
+    exit 0
+fi
+
+CREATE_TABLE=1
+
+while read t; do
+    FOUND_TABLE=$(echo "$t" | awk '{print $NF}')
+
+    if [ "$FOUND_TABLE" = "$CACHE_TABLE" ]; then
+        echo "Table $CACHE_TABLE already exists"
+        CREATE_TABLE=0
+        break
+    fi
+done <<< $(aws --endpoint-url=http://dynamodb:8000 dynamodb list-tables);
+
+if [ $CREATE_TABLE = 1 ]; then
+    echo "Creating table $CACHE_TABLE"
+
+    aws --endpoint-url=http://dynamodb:8000 dynamodb create-table \
+        --table-name $CACHE_TABLE \
+        --attribute-definitions \
+            AttributeName=$CACHE_KEY,AttributeType=S \
+        --key-schema \
+            AttributeName=$CACHE_KEY,KeyType=HASH \
+        --provisioned-throughput ReadCapacityUnits=5,WriteCapacityUnits=5 \
+        --table-class STANDARD
+
+    aws --endpoint-url=http://dynamodb:8000 dynamodb update-time-to-live \
+        --table-name $CACHE_TABLE \
+        --time-to-live-specification "Enabled=true, AttributeName=expires_at"
+fi
