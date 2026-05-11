@@ -6,7 +6,7 @@
     "keywords": ["laravel", "framework"],
     "license": "MIT",
     "require": {
-        "php": "^8.5",
+        "php": "^8.4",
         "archtechx/enums": "^1.1",
         "aws/aws-sdk-php": "^3.380",
         "blade-ui-kit/blade-heroicons": "^2.4",
