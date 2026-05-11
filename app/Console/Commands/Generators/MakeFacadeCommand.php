@@ -79,7 +79,7 @@ class MakeFacadeCommand extends GeneratorCommand
     protected function getServiceAccessor(string $name): string
     {
         return $this->accessor ??= (
-            $this->getOption('accessor')
+            $this->option('accessor')
             ?? array_first(array_filter(array_unique([
                 $this->getOption('target') ?? 'DummyTarget',
                 'App\\Services\\' . $name . 'Service',
@@ -100,7 +100,7 @@ class MakeFacadeCommand extends GeneratorCommand
         $service = $this->getServiceAccessor($name);
 
         return $this->target ??= (
-            $this->getOption('target') ?? class_exists($service) ? $service : get_class(resolve($service))
+            $this->option('target') ?? class_exists($service) ? $service : get_class(resolve($service))
         );
     }
 

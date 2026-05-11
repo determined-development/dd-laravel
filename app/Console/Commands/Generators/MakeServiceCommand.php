@@ -24,6 +24,7 @@ class MakeServiceCommand extends GeneratorCommand
     protected function getOptions(): array
     {
         return [
+            ['with-provider', 'p', InputOption::VALUE_NONE, 'Add a service provider for this service'],
             ['with-facade', 'w', InputOption::VALUE_NONE, 'Add a facade for the service'],
             ['force', 'f', InputOption::VALUE_NONE, 'Create the service even if the file already exists'],
         ];
@@ -43,11 +44,16 @@ class MakeServiceCommand extends GeneratorCommand
             return false;
         }
 
+        if ($this->option('with-provider')) {
+            $this->call('make:provider', [
+                'name' => $this->getNameInput() . 'Provider',
+            ]);
+        }
+
         if ($this->option('with-facade')) {
             $this->call('make:facade', [
                 'name' => str($this->getNameInput())->beforeLast('Service')->toString(),
-                'target' => $this->getNameInput(),
-                'accessor' => $this->getNameInput(),
+                '--target' => $this->qualifyClass($this->getNameInput()),
             ]);
         }
     }
