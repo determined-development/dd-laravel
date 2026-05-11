@@ -97,8 +97,7 @@
         ],
         "post-create-project-cmd": [
             "@php artisan key:generate --ansi",
-            "sail build",
-            "sail artisan key:generate"
+            "sail build"
         ],
         "pre-package-uninstall": [
             "Illuminate\\Foundation\\ComposerScripts::prePackageUninstall"
