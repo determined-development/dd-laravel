@@ -2,8 +2,12 @@
 
 namespace {{ namespace }};
 
+use {{ qualifiedTarget }};
 use Illuminate\Support\Facades\Facade;
 
+/**
+ * @mixin {{ target }}
+ */
 class {{ class }} extends Facade
 {
     protected static function getFacadeAccessor(): string

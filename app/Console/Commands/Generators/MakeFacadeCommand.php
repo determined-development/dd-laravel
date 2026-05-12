@@ -3,6 +3,8 @@
 namespace App\Console\Commands\Generators;
 
 use Illuminate\Console\GeneratorCommand;
+use Illuminate\Contracts\Filesystem\FileNotFoundException;
+use Illuminate\Support\Str;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Input\InputOption;
 
@@ -11,64 +13,46 @@ class MakeFacadeCommand extends GeneratorCommand
 {
     protected $type = 'Facade';
 
-    protected string $accessor;
-    protected string $target;
-
-    protected function buildClass($name): string
+    protected function getStub(): string
     {
-        $dummyTarget = '\Dummy\Target';
-        $dummyMixin = 'Target';
-
-        $replace = $this->buildFacadeReplacements(
-            [],
-            $dummyTarget,
-            $name,
-        );
-
-        return str_replace(
-            [
-                'use ' . $dummyTarget . ';' . PHP_EOL,
-                $dummyMixin . '::class',
-                PHP_EOL . '/**' . PHP_EOL . ' * @mixin ' . $dummyMixin  . PHP_EOL . ' */'
-            ],
-            ['', ''],
-            str_replace(
-                array_keys($replace),
-                array_values($replace),
-                parent::buildClass($name)
-            )
-        );
+        return $this->hasTargetClass()
+            ? $this->resolveStubPath('/stubs/facade.targeted.stub')
+            : $this->resolveStubPath('/stubs/facade.stub');
     }
 
-    protected function buildFacadeReplacements(
-        array $replace,
-        string $dummyTarget,
-        string $name,
-    ): array {
-        $mixin = $this->getTargetClass($name);
-        $import = $mixin;
-        $target = $this->getServiceAccessor($name);
+    protected function getAccessor(): string
+    {
+        return $this->option('accessor')
+            ?: $this->getTargetClass()
+                ?: Str::slug($this->getNameInput());
+    }
 
-        // Handle targets with the same name as the facade
-        if (class_basename($import) === class_basename($name)) {
-            $alias = class_basename($import) . 'Service';
-            $import .= ' as ' . $alias;
-        } else {
-            $alias = class_basename($import);
-        }
+    protected function hasTargetClass(): bool
+    {
+        return ($this->option('target') && class_exists($this->option('target')))
+            || ($this->option('accessor') && class_exists($this->option('accessor')))
+            || class_exists($this->getAccessor());
+    }
 
-        $accessor = class_exists($target)
-            ? class_basename($target) . '::class'
-            : str($target)->wrap('\'')->toString();
+    protected function getTargetClass(): string
+    {
+        $name = str_replace('/', '\\', ltrim($this->getNameInput(), '\\/'));
+        $rootNamespace = trim($this->rootNamespace(), '\\');
 
-        return array_merge($replace, [
-            '{{ import }}' => $import,
-            '{{import}}' => $import,
-            '{{ mixin }}' => $alias,
-            '{{mixin}}' => $alias,
-            '{{ accessor }}' => $accessor,
-            '{{accessor}}' => $accessor,
-        ]);
+        return $this->option('target')
+            ?: array_first(array_filter([
+                $rootNamespace . '\\Services\\' . $name . 'Service',
+                $rootNamespace . '\\Services\\' . $name,
+                $rootNamespace . '\\' . $name . 'Service',
+            ], class_exists(...)))
+                ?: (class_exists($this->option('accessor') ?? 'dummy class') ? $this->option('accessor') : '');
+    }
+
+    protected function resolveStubPath(string $stub): string
+    {
+        return file_exists($customPath = $this->laravel->basePath(trim($stub, '/')))
+            ? $customPath
+            : __DIR__ . $stub;
     }
 
     protected function getDefaultNamespace($rootNamespace): string
@@ -76,45 +60,62 @@ class MakeFacadeCommand extends GeneratorCommand
         return $rootNamespace . '\Support\Facades';
     }
 
-    protected function getServiceAccessor(string $name): string
+    /**
+     * @param string $name
+     * @return string
+     *
+     * @throws FileNotFoundException
+     */
+    protected function buildClass($name)
     {
-        return $this->accessor ??= (
-            $this->option('accessor')
-            ?? array_first(array_filter(array_unique([
-                $this->getOption('target') ?? 'DummyTarget',
-                'App\\Services\\' . $name . 'Service',
-                'App\\Services\\' . class_basename($name) . 'Service',
-                'App\\Services\\' . $name,
-                'App\\Services\\' . class_basename($name),
-                $name . 'Service',
-                class_basename($name) . 'Service',
-                $name,
-                class_basename($name),
-            ]), class_exists(...)))
-            ?? str($name)->replace('\\', '.')->slug('-')->toString()
+        $replace = $this->buildFacadeReplacements();
+
+        return str_replace(
+            array_keys($replace),
+            array_values($replace),
+            parent::buildClass($name)
         );
     }
 
-    protected function getTargetClass(string $name): string
+    /**
+     * @return array<string, string>
+     */
+    protected function buildFacadeReplacements(): array
     {
-        $service = $this->getServiceAccessor($name);
+        $accessor = $this->getAccessor();
 
-        return $this->target ??= (
-            $this->option('target') ?? class_exists($service) ? $service : get_class(resolve($service))
-        );
+        $replacements = [
+            '{{ accessor }}' => class_exists($accessor)
+                ? Str::wrap($accessor, '\\', '::class')
+                : Str::wrap($accessor, '\''),
+        ];
+
+        if ($this->hasTargetClass()) {
+            $target = $this->getTargetClass();
+            $import = $target;
+            $alias = class_basename($target);
+
+            if ($alias === class_basename($this->getNameInput())) {
+                $alias = $alias . 'Service';
+                $import .= ' as ' . $alias;
+            }
+
+            $replacements['{{ accessor }}'] = is_a($accessor, $target, true)
+                ? class_basename($alias) . '::class'
+                : $replacements['{{ accessor }}'];
+            $replacements['{{ qualifiedTarget }}'] = $import;
+            $replacements['{{ target }}'] = $alias;
+        }
+
+        return $replacements;
     }
 
     protected function getOptions(): array
     {
         return [
             ['target', 't', InputOption::VALUE_REQUIRED, 'Set the target service class'],
-            ['accessor', 'a', InputOption::VALUE_REQUIRED, 'Set the service accessor'],
-            ['force', 'f', InputOption::VALUE_NONE, 'Create the facade even if the file already exists'],
+            ['accessor', 'a', InputOption::VALUE_REQUIRED, 'Set the facade accessor'],
+            ['force', 'f', InputOption::VALUE_NONE, 'Create the facade even if the class already exists'],
         ];
-    }
-
-    protected function getStub(): string
-    {
-        return $this->laravel->basePath('stubs/facade.stub');
     }
 }
