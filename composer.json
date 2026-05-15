@@ -21,6 +21,7 @@
     "require-dev": {
         "barryvdh/laravel-ide-helper": "^3.1",
         "determined-development/dd-boost": "^1.1",
+        "determined-development/laradev": "^1.1",
         "fakerphp/faker": "^1.23",
         "larastan/larastan": "^3.0",
         "laravel/boost": "^2.4",

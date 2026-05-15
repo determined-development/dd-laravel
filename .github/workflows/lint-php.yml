@@ -12,7 +12,7 @@ on:
       - 'resources/views/**/*.php'
       - 'routes/**/*.php'
       - 'tests/**/*.php'
-      - 'compser.lock'
+      - 'composer.lock'
       - 'phpcs.xml.dist'
       - 'phpstan.neon'
       - 'pint.json'
