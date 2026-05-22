@@ -1,35 +1,72 @@
-<nav
-  class="w-full max-w-screen-w sticky top-0 h-22 z-10 flex items-center jusitfy-between md:items-end"
-  role="navigation"
-  aria-label="main navigation"
-  x-data="navigation"
-  x-on:click.outside="close"
-  x-on:focus.outside="close"
->
+<flux:header container class="bg-zinc-50 dark:bg-zinc-900 border-b border-zinc-200 dark:border-zinc-700">
+  <flux:sidebar.toggle class="lg:hidden" icon="bars-2" inset="left"/>
   <a class="sr-only" href="#main">Jump to content</a>
-  <a href="{{ url('/') }}"><x-logo class="w-20 h-20" /></a>
-  <div class="h-full max-w-7xl w-fit min-w-1/2-screen-w mx-auto px-2 grow shrink-0">
-    <div class="gap-2 w-full flex items-center justify-end md:hidden h-full">
-      <button
-        role="button"
-        class="rounded border-none bg-itc-blue text-gray-400 w-12 h-12 flex items-center justify-center focusable"
-        x-on:click="toggle"
-        x-bind:aria-label="title"
-      >
-        <x-heroicon-o-bars-3 class="h-10 w-10 pointer-events-none" />
-      </button>
-    </div>
-    <div
-      @class([
-        'gap-1 w-full',
-        'flex-col items-stretch justify-center absolute top-24 inset-x-0 bg-gray-200 max-h-screen-h overflow-y-auto md:overflow-y-visible',
-        'md:right-0 md:left-auto md:flex md:flex-row md:items-center md:justify-end md:relative md:top-auto md:bg-transparent md:pt-4',
-        'lg:gap-2',
-      ])
-      x-bind:class="menuClass"
-      x-cloak
+  <flux:brand href="{{ url('/') }}" name="{{ config('app.name', 'Laravel') }}" class="max-lg:hidden">
+    <x-slot:logo>
+      <x-logo class="h-6"/>
+    </x-slot:logo>
+  </flux:brand>
+
+  <flux:navbar class="-mb-px max-lg:hidden">
+    {{-- Main navigation --}}
+  </flux:navbar>
+
+  <flux:spacer/>
+
+  <flux:navbar class="-mb-px max-lg:hidden">
+    @auth
+      <form action="{{ route('logout') }}" method="POST">
+        @csrf
+
+        <flux:button icon="arrow-right-start-on-rectangle" type="submit" variant="ghost">
+          {{ trans('auth.logout') }}
+        </flux:button>
+      </form>
+    @else
+      <flux:navbar.item href="{{ route('login') }}" icon="arrow-right-end-on-rectangle">
+        {{ trans('auth.login.submit') }}
+      </flux:navbar.item>
+    @endauth
+  </flux:navbar>
+</flux:header>
+
+<flux:sidebar
+  sticky
+  collapsible="mobile"
+  class="lg:hidden bg-zinc-50 dark:bg-zinc-900 border-r border-zinc-200 dark:border-zinc-700"
+>
+  <flux:sidebar.header>
+    <flux:sidebar.brand
+      href="{{ url('/') }}"
+      name="{{ config('app.name', 'Laravel') }}"
     >
-      {{-- TODO: Add site menu --}}
-    </div>
-  </div>
-</nav>
+      <x-slot:logo>
+        <x-logo class="h-6"/>
+      </x-slot:logo>
+    </flux:sidebar.brand>
+
+    <flux:sidebar.collapse class="in-data-flux-sidebar-on-desktop:not-in-data-flux-sidebar-collapsed-desktop:-mr-2"/>
+  </flux:sidebar.header>
+
+  <flux:sidebar.nav>
+    {{-- Mobile navigation --}}
+  </flux:sidebar.nav>
+
+  <flux:sidebar.spacer />
+
+  <flux:sidebar.nav>
+    @auth
+      <form action="{{ route('logout') }}" method="POST">
+        @csrf
+
+        <flux:button icon="arrow-right-start-on-rectangle" type="submit" variant="ghost">
+          {{ trans('auth.logout') }}
+        </flux:button>
+      </form>
+    @else
+      <flux:sidebar.item href="{{ route('login') }}" icon="arrow-right-end-on-rectangle">
+        {{ trans('auth.login.submit') }}
+      </flux:sidebar.item>
+    @endauth
+  </flux:sidebar.nav>
+</flux:sidebar>
