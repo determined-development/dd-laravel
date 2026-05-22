@@ -8,14 +8,14 @@ return new #[Layout('layouts::guest')] class () extends Component {
     public function mount(): void
     {
         if (auth()->user()->hasVerifiedEmail()) {
-            $this->redirect(route('dashboard'), true);
+            $this->redirect(route('dashboard'));
         }
     }
 
     public function sendVerificationNotification(): void
     {
         if (auth()->user()->hasVerifiedEmail()) {
-            $this->redirect(route('dashboard'), true);
+            $this->redirect(route('dashboard'));
 
             return;
         }

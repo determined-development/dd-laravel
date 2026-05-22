@@ -4,7 +4,7 @@ use App\Models\User;
 
 use function Pest\Livewire\livewire;
 
-it('authenticates a verified user and redirects to home', function () {
+it('authenticates a verified user and redirects to dashboard', function () {
     $user = User::factory()->create([
         'email' => 'foo@example.com',
         'password' => 'password',

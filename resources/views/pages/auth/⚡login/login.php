@@ -50,7 +50,7 @@ return new #[Layout('layouts::guest')] class () extends Component {
             session()->pull(
                 'url.intended',
                 auth()->user()->hasVerifiedEmail()
-                ? route('home')
+                ? route('dashboard')
                 : route('verification.notice')
             )
         );
