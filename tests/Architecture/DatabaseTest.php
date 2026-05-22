@@ -1,13 +1,16 @@
 <?php
 
+use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Database\Seeder;
+
 arch('seeder classes are seeders')
     ->expect('Database\Seeders')
     ->toBeClasses()
-    ->toExtend(\Illuminate\Database\Seeder::class)
+    ->toExtend(Seeder::class)
     ->toHaveSuffix('Seeder');
 
 arch('factory classes are factories')
     ->expect('Database\Factories')
     ->toBeClasses()
-    ->toExtend(\Illuminate\Database\Eloquent\Factories\Factory::class)
+    ->toExtend(Factory::class)
     ->toHaveSuffix('Factory');

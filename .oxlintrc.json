@@ -1,16 +1,19 @@
 {
+    "$schema": "./node_modules/oxlint/configuration_schema.json",
     "env": {
         "browser": true
     },
+    "plugins": ["unicorn", "oxc"],
     "globals": {},
     "settings": {},
     "rules": {
         "eqeqeq": "warn",
         "import/no-cycle": "error",
-        "eslint/no-alert": "error",
-        "eslint/no-console": "warn",
-        "eslint/no-empty": "warn",
-        "eslint/no-empty-function": "warn",
-        "eslint/no-eval ": "warn"
+        "no-alert": "error",
+        "no-console": "warn",
+        "no-empty": "warn",
+        "no-empty-function": "warn",
+        "no-eval ": "warn",
+        "no-implied-eval": "warn"
     }
 }

@@ -13,15 +13,18 @@
 
   <!-- Scripts -->
   @vite(['resources/css/app.css', 'resources/js/app.js'])
-  @livewireStyles
+  @fluxAppearance
 </head>
-<body class="font-sans antialiased">
+<body class="font-sans min-h-screen bg-gray-100 dark:bg-zinc-800 antialiased">
 <div class="min-h-dvh bg-gray-100">
   <x-nav.main />
-  <main class="relative" id="main">
+  <main class="relative flex-1" id="main">
     {{ $slot }}
   </main>
 </div>
+@persist('toast')
+<flux:toast/>
+@endpersist
 @livewireScripts
 @fluxScripts
 </body>

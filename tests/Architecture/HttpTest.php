@@ -1,11 +1,14 @@
 <?php
 
+use App\Http\Controllers\Controller;
+use Illuminate\Foundation\Http\FormRequest;
+
 arch('controllers namespace extend base controller')
     ->expect('App\Http\Controllers')
     ->toBeClasses()
-    ->toExtend(\App\Http\Controllers\Controller::class);
+    ->toExtend(Controller::class);
 
 arch('requests namespace extend form request')
     ->expect('App\Http\Requests')
     ->toBeClasses()
-    ->toExtend(\Illuminate\Foundation\Http\FormRequest::class);
+    ->toExtend(FormRequest::class);
